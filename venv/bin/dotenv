@@ -1,0 +1,6 @@
+#!/home/luis/UNACH/SEXTO_SEM/taller4/Proyect_Micros/venv/bin/python
+import sys
+from dotenv.__main__ import cli
+if __name__ == '__main__':
+    sys.argv[0] = sys.argv[0].removesuffix('.exe')
+    sys.exit(cli())

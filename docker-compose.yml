@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  # RabbitMQ con Management UI
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: microservices_rabbitmq
+    ports:
+      - "5672:5672"   # AMQP port
+      - "15672:15672" # Management UI
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - microservices
+
+  # MySQL para usuarios
+  mysql:
+    image: mysql:8.0
+    container_name: microservices_mysql
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: luismanuel08
+      MYSQL_DATABASE: users
+      MYSQL_USER: app
+      MYSQL_PASSWORD: app123
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./init/mysql-init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - microservices
+
+  # PostgreSQL para órdenes
+  postgres:
+    image: postgres:15
+    container_name: microservices_postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: orders
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: luismanuel08
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init/postgres-init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - microservices
+
+volumes:
+  rabbitmq_data:
+  mysql_data:
+  postgres_data:
+
+networks:
+  microservices:
+    driver: bridge
